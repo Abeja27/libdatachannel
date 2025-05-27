@@ -139,6 +139,7 @@ void H264RtpDepacketizer::incoming(message_vector &messages, const message_callb
 		uint32_t current_timestamp = 0;
 		size_t packets_in_timestamp = 0;
 
+		bool isMarker = false;
 		for (const auto &pkt : mRtpBuffer) {
 			auto p = reinterpret_cast<const rtc::RtpHeader *>(pkt->data());
 
@@ -151,9 +152,14 @@ void H264RtpDepacketizer::incoming(message_vector &messages, const message_callb
 			}
 
 			packets_in_timestamp++;
+
+			if (p->marker()) {
+				isMarker = true;
+				break;
+			}
 		}
 
-		if (packets_in_timestamp == mRtpBuffer.size()) {
+		if (!isMarker && packets_in_timestamp == mRtpBuffer.size()) {
 			break;
 		}
 
